@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message of the Day</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .centered {
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        input[type="password"],
+        input[type="date"],
+        input[type="text"],
+        textarea {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #008cba;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #008cba;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #005f6a;
+        }
+
+        #content-page {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .replies {
+            margin-top: 20px;
+        }
+
+        .reply {
+            background: #e0f7fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="login-page" class="centered">
+        <h1>Login</h1>
+        <input type="password" id="password" placeholder="Enter Password">
+        <button onclick="checkPassword()">Login</button>
+    </div>
+
+    <div id="content-page" class="hidden centered">
+        <label for="date-selector">Choose a date:</label>
+        <input type="date" id="date-selector" onchange="showMessage()">
+        <h1 id="date"></h1>
+        <p id="message"></p>
+        <div id="replies" class="replies"></div>
+        <textarea id="reply-input" placeholder="Write your reply here..."></textarea>
+        <button onclick="saveReply()">Submit Reply</button>
+    </div>
+
+    <script>
+        const messages = {
+            "2024-06-20": "Happy Summer Solstice!",
+            "2024-06-21": "Enjoy the long days!",
+            "2024-06-22": "Relax and unwind today.",
+             "2024-06-24": "The Scriptures assure us that our God will not abandon us when we make mistakes. The Israelites sinned against Jehovah again and again; yet, when they sincerely repented, God forgave them. First-century Christians were also made aware of God’s love. Under inspiration, the apostle Paul urged fellow believers to “forgive and comfort” a man who had pursued a course of serious sin but who had repented. (2 Cor. 2:6, 7; 1 Cor. 5:1-5) How remarkable that Jehovah did not reject his worshippers just because they had erred! Rather, he lovingly reached out to them, corrected them, and invited them back into his arms. He promises to do the same for all repentant sinners today. (Jas. 4:8-10) The Bible reveals God’s wisdom, his justice, and his love. This book proves.",
+            // Add more messages for specific past dates here
+        };
+
+        function checkPassword() {
+            const password = document.getElementById('password').value;
+            if (password === '28012024') {
+                document.getElementById('login-page').classList.add('hidden');
+                document.getElementById('content-page').classList.remove('hidden');
+                showDateAndMessage(new Date().toISOString().split('T')[0]);
+            } else {
+                alert('Incorrect Password');
+            }
+        }
+
+        function showDateAndMessage(selectedDate) {
+            const formattedDate = formatDate(selectedDate);
+            document.getElementById('date').textContent = formattedDate;
+
+            const today = new Date().toISOString().split('T')[0];
+            if (selectedDate > today) {
+                document.getElementById('message').textContent = 'No message yet.';
+            } else if (messages[selectedDate]) {
+                document.getElementById('message').textContent = messages[selectedDate];
+            } else {
+                document.getElementById('message').textContent = 'There was no message for the selected day.';
+            }
+            displayReplies(selectedDate);
+        }
+
+        function showMessage() {
+            const selectedDate = document.getElementById('date-selector').value;
+            if (selectedDate) {
+                showDateAndMessage(selectedDate);
+            }
+        }
+
+        function displayReplies(date) {
+            const repliesDiv = document.getElementById('replies');
+            repliesDiv.innerHTML = '';
+            const replies = JSON.parse(localStorage.getItem(date)) || [];
+            replies.forEach(reply => {
+                const replyDiv = document.createElement('div');
+                replyDiv.className = 'reply';
+                replyDiv.textContent = reply;
+                repliesDiv.appendChild(replyDiv);
+            });
+        }
+
+        function saveReply() {
+            const date = document.getElementById('date').textContent;
+            const replyInput = document.getElementById('reply-input');
+            const reply = replyInput.value.trim();
+            if (reply) {
+                const selectedDate = document.getElementById('date-selector').value;
+                const replies = JSON.parse(localStorage.getItem(selectedDate)) || [];
+                replies.push(reply);
+                localStorage.setItem(selectedDate, JSON.stringify(replies));
+                displayReplies(selectedDate);
+                replyInput.value = '';
+            }
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const day = date.getDate();
+            const month = date.toLocaleString('default', { month: 'long' });
+            const year = date.getFullYear();
+            return `${day}${getOrdinalSuffix(day)} ${month} ${year}`;
+        }
+
+        function getOrdinalSuffix(day) {
+            if (day > 3 && day < 21) return 'th';
+            switch (day % 10) {
+                case 1: return 'st';
+                case 2: return 'nd';
+                case 3: return 'rd';
+                default: return 'th';
+            }
+        }
+
+        window.onload = function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').textContent = formatDate(today);
+            if (messages[today]) {
+                document.getElementById('message').textContent = messages[today];
+            } else {
+                document.getElementById('message').textContent = 'There is no message for today.';
+            }
+            displayReplies(today);
+        };
+    </script>
+</body>
+</html>
